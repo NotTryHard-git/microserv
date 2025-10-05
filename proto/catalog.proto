@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package catalog;
+
+service CatalogService {
+  rpc CreateProduct(CreateProductRequest) returns (ProductResponse);
+  rpc GetProduct(GetProductRequest) returns (ProductResponse);
+  rpc UpdateProduct(UpdateProductRequest) returns (ProductResponse);
+  rpc DeleteProduct(DeleteProductRequest) returns (DeleteResponse);
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  rpc CreateCategory(CreateCategoryRequest) returns (CategoryResponse);
+  rpc ListCategories(Empty) returns (ListCategoriesResponse);
+}
+
+message CreateProductRequest {
+  string name = 1;
+  string description = 2;
+  float price = 3;
+  string category_id = 4;
+  int32 quantity = 5;
+  string image_url = 6;
+}
+
+message GetProductRequest {
+  string product_id = 1;
+}
+
+message UpdateProductRequest {
+  string product_id = 1;
+  string name = 2;
+  string description = 3;
+  float price = 4;
+  string category_id = 5;
+  int32 quantity = 6;
+  string image_url = 7;
+}
+
+message DeleteProductRequest {
+  string product_id = 1;
+}
+
+message ListProductsRequest {
+  string category_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message CreateCategoryRequest {
+  string name = 1;
+}
+
+message ProductResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  float price = 4;
+  string category_id = 5;
+  int32 quantity = 6;
+  string image_url = 7;
+}
+
+message CategoryResponse {
+  string id = 1;
+  string name = 2;
+}
+
+message ListProductsResponse {
+  repeated ProductResponse products = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message ListCategoriesResponse {
+  repeated CategoryResponse categories = 1;
+}
+
+message DeleteResponse {
+  bool success = 1;
+}
+
+message Empty {}

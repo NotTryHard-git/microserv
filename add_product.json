@@ -1,0 +1,7 @@
+{
+    "name": "MacBook Pro",
+    "description": "Apple laptop",
+    "price": 1999.99,
+    "category_id": "1",
+    "quantity": 10
+  }

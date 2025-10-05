@@ -1,0 +1,13 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY proto/catalog.proto .
+RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. catalog.proto
+
+COPY services/catalog_service.py .
+
+CMD ["python", "catalog_service.py"]
