@@ -6,6 +6,14 @@ services:
     ports:
       - "8500:8500"
     command: ["agent", "-dev", "-client=0.0.0.0"]
+  cart-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.cart
+    ports:
+      - "50053:50053"
+    depends_on:
+      - consul
 
   auth-service:
     build:
@@ -13,9 +21,12 @@ services:
       dockerfile: Dockerfile.auth
     ports:
       - "50051:50051"
+    environment:
+      - CONSUL_HOST=consul
     depends_on:
+      - cart-service  
       - consul
-
+  
   catalog-service:
     build:
       context: .

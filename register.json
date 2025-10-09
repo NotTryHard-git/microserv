@@ -1,5 +1,6 @@
 {
-    "email": "test@example.com",
+    "email": "test2@example.com",
     "password": "password123",
-    "role": "CUSTOMER"
+    "role": "CUSTOMER",
+    "bank_account": "1"
 }

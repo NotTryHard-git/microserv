@@ -4,13 +4,17 @@ import auth_pb2
 import auth_pb2_grpc
 import catalog_pb2
 import catalog_pb2_grpc
+import cart_pb2
+import cart_pb2_grpc
 
 app = Flask(__name__)
 
 SERVICE_CONFIG = {
     'auth': 'auth-service:50051',
-    'catalog': 'catalog-service:50052'
+    'catalog': 'catalog-service:50052',
+    'cart': 'cart-service:50053'
 }
+    
 
 class AuthClient:
     def __init__(self):
@@ -30,11 +34,11 @@ class AuthClient:
                 'token': response.token,
                 'user_id': response.user_id,
                 'email': response.email,
-                'role': response.role
+                'role': response.role,
+                'cart_id': response.cart_id  # NEW FIELD!
             }
         except grpc.RpcError as e:
             return {'error': e.details()}
-    
     def login(self, data):
         try:
             response = self.stub.Login(auth_pb2.LoginRequest(
@@ -49,6 +53,56 @@ class AuthClient:
             }
         except grpc.RpcError as e:
             return {'error': e.details()}
+
+class CartClient:
+    def __init__(self):
+        self.channel = grpc.insecure_channel(SERVICE_CONFIG['cart'])
+        self.stub = cart_pb2_grpc.CartServiceStub(self.channel)
+    
+    def get_cart(self, user_id):
+        try:
+            response = self.stub.GetCart(cart_pb2.GetCartRequest(user_id=user_id))
+            return {
+                'cart_id': response.cart_id,
+                'user_id': response.user_id,
+                'items': [{
+                    'product_id': item.product_id,
+                    'product_name': item.product_name,
+                    'price': item.price,
+                    'quantity': item.quantity,
+                    'total': item.total
+                } for item in response.items],
+                'total_amount': response.total_amount,
+                'total_items': response.total_items,
+                'created_at': response.created_at,
+                'updated_at': response.updated_at
+            }
+        except grpc.RpcError as e:
+            return {'error': e.details()}
+    
+    def add_to_cart(self, user_id, product_id, quantity):
+        try:
+            response = self.stub.AddItem(cart_pb2.AddItemRequest(
+                user_id=user_id,
+                product_id=product_id,
+                quantity=quantity
+            ))
+            return {
+                'cart_id': response.cart_id,
+                'user_id': response.user_id,
+                'items': [{
+                    'product_id': item.product_id,
+                    'product_name': item.product_name,
+                    'price': item.price,
+                    'quantity': item.quantity,
+                    'total': item.total
+                } for item in response.items],
+                'total_amount': response.total_amount,
+                'total_items': response.total_items
+            }
+        except grpc.RpcError as e:
+            return {'error': e.details()}
+
 
 class CatalogClient:
     def __init__(self):
@@ -96,8 +150,14 @@ class CatalogClient:
             'image_url': product.image_url
         }
 
+
 auth_client = AuthClient()
 catalog_client = CatalogClient()
+cart_client = CartClient()
+
+
+
+# Auth routes
 
 @app.route('/api/auth/register', methods=['POST'])
 def register():
@@ -111,6 +171,22 @@ def login():
     result = auth_client.login(data)
     return jsonify(result)
 
+# Cart routes
+@app.route('/api/cart/<user_id>', methods=['GET'])
+def get_cart(user_id):
+    result = cart_client.get_cart(user_id)
+    return jsonify(result)
+
+@app.route('/api/cart/<user_id>/add', methods=['POST'])
+def add_to_cart(user_id):
+    data = request.get_json()
+    product_id = data.get('product_id')
+    quantity = data.get('quantity', 1)
+    
+    result = cart_client.add_to_cart(user_id, product_id, quantity)
+    return jsonify(result)
+
+# Catalog routers
 @app.route('/api/products', methods=['POST'])
 def create_product():
     data = request.get_json()
