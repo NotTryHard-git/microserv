@@ -37,7 +37,7 @@ services:
     depends_on:
       - consul
 
-  order-service:  # NEW SERVICE
+  order-service:
     build:
       context: .
       dockerfile: Dockerfile.order
@@ -48,6 +48,25 @@ services:
       - catalog-service
       - consul
 
+  # NEW: GraphQL Gateway
+  graphql-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.graphql
+    ports:
+      - "8081:8081"
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - catalog-service
+      - order-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   api-gateway:
     build:
       context: .
@@ -57,13 +76,16 @@ services:
     depends_on:
       - auth-service
       - catalog-service
-      - order-service  # NEW DEPENDENCY
+      - order-service
+      - graphql-gateway  # NEW DEPENDENCY
 
   nginx:
     image: nginx:alpine
     ports:
       - "80:80"
+      - "8082:8082"  # Для GraphQL документации
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - api-gateway
+      - graphql-gateway

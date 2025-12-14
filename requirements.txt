@@ -4,3 +4,6 @@ flask==2.3.3
 pyjwt==2.8.0
 python-consul==1.1.0
 requests==2.31.0
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+strawberry-graphql[fastapi]==0.199.2
