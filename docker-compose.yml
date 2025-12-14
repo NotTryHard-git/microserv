@@ -6,6 +6,7 @@ services:
     ports:
       - "8500:8500"
     command: ["agent", "-dev", "-client=0.0.0.0"]
+  
   cart-service:
     build:
       context: .
@@ -36,6 +37,17 @@ services:
     depends_on:
       - consul
 
+  order-service:  # NEW SERVICE
+    build:
+      context: .
+      dockerfile: Dockerfile.order
+    ports:
+      - "50054:50054"
+    depends_on:
+      - cart-service
+      - catalog-service
+      - consul
+
   api-gateway:
     build:
       context: .
@@ -45,6 +57,7 @@ services:
     depends_on:
       - auth-service
       - catalog-service
+      - order-service  # NEW DEPENDENCY
 
   nginx:
     image: nginx:alpine

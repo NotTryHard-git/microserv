@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import cart_pb2 as proto_dot_cart__pb2
+import order_pb2 as proto_dot_order__pb2
 
 GRPC_GENERATED_VERSION = '1.75.1'
 GRPC_VERSION = grpc.__version__
@@ -18,14 +18,14 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in proto/cart_pb2_grpc.py depends on'
+        + f' but the generated code in proto/order_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
     )
 
 
-class CartServiceStub(object):
+class OrderServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -34,107 +34,107 @@ class CartServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.CreateCart = channel.unary_unary(
-                '/cart.CartService/CreateCart',
-                request_serializer=proto_dot_cart__pb2.CreateCartRequest.SerializeToString,
-                response_deserializer=proto_dot_cart__pb2.CartResponse.FromString,
+        self.CreateOrder = channel.unary_unary(
+                '/order.OrderService/CreateOrder',
+                request_serializer=proto_dot_order__pb2.CreateOrderRequest.SerializeToString,
+                response_deserializer=proto_dot_order__pb2.OrderResponse.FromString,
                 _registered_method=True)
-        self.GetCart = channel.unary_unary(
-                '/cart.CartService/GetCart',
-                request_serializer=proto_dot_cart__pb2.GetCartRequest.SerializeToString,
-                response_deserializer=proto_dot_cart__pb2.CartResponse.FromString,
+        self.GetOrder = channel.unary_unary(
+                '/order.OrderService/GetOrder',
+                request_serializer=proto_dot_order__pb2.GetOrderRequest.SerializeToString,
+                response_deserializer=proto_dot_order__pb2.OrderResponse.FromString,
                 _registered_method=True)
-        self.AddItem = channel.unary_unary(
-                '/cart.CartService/AddItem',
-                request_serializer=proto_dot_cart__pb2.AddItemRequest.SerializeToString,
-                response_deserializer=proto_dot_cart__pb2.CartResponse.FromString,
+        self.ListOrders = channel.unary_unary(
+                '/order.OrderService/ListOrders',
+                request_serializer=proto_dot_order__pb2.ListOrdersRequest.SerializeToString,
+                response_deserializer=proto_dot_order__pb2.ListOrdersResponse.FromString,
                 _registered_method=True)
-        self.RemoveItem = channel.unary_unary(
-                '/cart.CartService/RemoveItem',
-                request_serializer=proto_dot_cart__pb2.RemoveItemRequest.SerializeToString,
-                response_deserializer=proto_dot_cart__pb2.CartResponse.FromString,
+        self.UpdateOrderStatus = channel.unary_unary(
+                '/order.OrderService/UpdateOrderStatus',
+                request_serializer=proto_dot_order__pb2.UpdateOrderStatusRequest.SerializeToString,
+                response_deserializer=proto_dot_order__pb2.OrderResponse.FromString,
                 _registered_method=True)
-        self.ClearCart = channel.unary_unary(
-                '/cart.CartService/ClearCart',
-                request_serializer=proto_dot_cart__pb2.ClearCartRequest.SerializeToString,
-                response_deserializer=proto_dot_cart__pb2.CartResponse.FromString,
+        self.CancelOrder = channel.unary_unary(
+                '/order.OrderService/CancelOrder',
+                request_serializer=proto_dot_order__pb2.CancelOrderRequest.SerializeToString,
+                response_deserializer=proto_dot_order__pb2.OrderResponse.FromString,
                 _registered_method=True)
 
 
-class CartServiceServicer(object):
+class OrderServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def CreateCart(self, request, context):
+    def CreateOrder(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetCart(self, request, context):
+    def GetOrder(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def AddItem(self, request, context):
+    def ListOrders(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def RemoveItem(self, request, context):
+    def UpdateOrderStatus(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def ClearCart(self, request, context):
+    def CancelOrder(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
 
-def add_CartServiceServicer_to_server(servicer, server):
+def add_OrderServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'CreateCart': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateCart,
-                    request_deserializer=proto_dot_cart__pb2.CreateCartRequest.FromString,
-                    response_serializer=proto_dot_cart__pb2.CartResponse.SerializeToString,
+            'CreateOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateOrder,
+                    request_deserializer=proto_dot_order__pb2.CreateOrderRequest.FromString,
+                    response_serializer=proto_dot_order__pb2.OrderResponse.SerializeToString,
             ),
-            'GetCart': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetCart,
-                    request_deserializer=proto_dot_cart__pb2.GetCartRequest.FromString,
-                    response_serializer=proto_dot_cart__pb2.CartResponse.SerializeToString,
+            'GetOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetOrder,
+                    request_deserializer=proto_dot_order__pb2.GetOrderRequest.FromString,
+                    response_serializer=proto_dot_order__pb2.OrderResponse.SerializeToString,
             ),
-            'AddItem': grpc.unary_unary_rpc_method_handler(
-                    servicer.AddItem,
-                    request_deserializer=proto_dot_cart__pb2.AddItemRequest.FromString,
-                    response_serializer=proto_dot_cart__pb2.CartResponse.SerializeToString,
+            'ListOrders': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListOrders,
+                    request_deserializer=proto_dot_order__pb2.ListOrdersRequest.FromString,
+                    response_serializer=proto_dot_order__pb2.ListOrdersResponse.SerializeToString,
             ),
-            'RemoveItem': grpc.unary_unary_rpc_method_handler(
-                    servicer.RemoveItem,
-                    request_deserializer=proto_dot_cart__pb2.RemoveItemRequest.FromString,
-                    response_serializer=proto_dot_cart__pb2.CartResponse.SerializeToString,
+            'UpdateOrderStatus': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateOrderStatus,
+                    request_deserializer=proto_dot_order__pb2.UpdateOrderStatusRequest.FromString,
+                    response_serializer=proto_dot_order__pb2.OrderResponse.SerializeToString,
             ),
-            'ClearCart': grpc.unary_unary_rpc_method_handler(
-                    servicer.ClearCart,
-                    request_deserializer=proto_dot_cart__pb2.ClearCartRequest.FromString,
-                    response_serializer=proto_dot_cart__pb2.CartResponse.SerializeToString,
+            'CancelOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.CancelOrder,
+                    request_deserializer=proto_dot_order__pb2.CancelOrderRequest.FromString,
+                    response_serializer=proto_dot_order__pb2.OrderResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'cart.CartService', rpc_method_handlers)
+            'order.OrderService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('cart.CartService', rpc_method_handlers)
+    server.add_registered_method_handlers('order.OrderService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class CartService(object):
+class OrderService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def CreateCart(request,
+    def CreateOrder(request,
             target,
             options=(),
             channel_credentials=None,
@@ -147,9 +147,9 @@ class CartService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/cart.CartService/CreateCart',
-            proto_dot_cart__pb2.CreateCartRequest.SerializeToString,
-            proto_dot_cart__pb2.CartResponse.FromString,
+            '/order.OrderService/CreateOrder',
+            proto_dot_order__pb2.CreateOrderRequest.SerializeToString,
+            proto_dot_order__pb2.OrderResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -161,7 +161,7 @@ class CartService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetCart(request,
+    def GetOrder(request,
             target,
             options=(),
             channel_credentials=None,
@@ -174,9 +174,9 @@ class CartService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/cart.CartService/GetCart',
-            proto_dot_cart__pb2.GetCartRequest.SerializeToString,
-            proto_dot_cart__pb2.CartResponse.FromString,
+            '/order.OrderService/GetOrder',
+            proto_dot_order__pb2.GetOrderRequest.SerializeToString,
+            proto_dot_order__pb2.OrderResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -188,7 +188,7 @@ class CartService(object):
             _registered_method=True)
 
     @staticmethod
-    def AddItem(request,
+    def ListOrders(request,
             target,
             options=(),
             channel_credentials=None,
@@ -201,9 +201,9 @@ class CartService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/cart.CartService/AddItem',
-            proto_dot_cart__pb2.AddItemRequest.SerializeToString,
-            proto_dot_cart__pb2.CartResponse.FromString,
+            '/order.OrderService/ListOrders',
+            proto_dot_order__pb2.ListOrdersRequest.SerializeToString,
+            proto_dot_order__pb2.ListOrdersResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -215,7 +215,7 @@ class CartService(object):
             _registered_method=True)
 
     @staticmethod
-    def RemoveItem(request,
+    def UpdateOrderStatus(request,
             target,
             options=(),
             channel_credentials=None,
@@ -228,9 +228,9 @@ class CartService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/cart.CartService/RemoveItem',
-            proto_dot_cart__pb2.RemoveItemRequest.SerializeToString,
-            proto_dot_cart__pb2.CartResponse.FromString,
+            '/order.OrderService/UpdateOrderStatus',
+            proto_dot_order__pb2.UpdateOrderStatusRequest.SerializeToString,
+            proto_dot_order__pb2.OrderResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -242,7 +242,7 @@ class CartService(object):
             _registered_method=True)
 
     @staticmethod
-    def ClearCart(request,
+    def CancelOrder(request,
             target,
             options=(),
             channel_credentials=None,
@@ -255,9 +255,9 @@ class CartService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/cart.CartService/ClearCart',
-            proto_dot_cart__pb2.ClearCartRequest.SerializeToString,
-            proto_dot_cart__pb2.CartResponse.FromString,
+            '/order.OrderService/CancelOrder',
+            proto_dot_order__pb2.CancelOrderRequest.SerializeToString,
+            proto_dot_order__pb2.OrderResponse.FromString,
             options,
             channel_credentials,
             insecure,

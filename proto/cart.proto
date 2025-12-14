@@ -3,50 +3,50 @@ syntax = "proto3";
 package cart;
 
 service CartService {
-  rpc CreateCart(CreateCartRequest) returns (CartResponse);
-  rpc GetCart(GetCartRequest) returns (CartResponse);
-  rpc AddItem(AddItemRequest) returns (CartResponse);
-  rpc RemoveItem(RemoveItemRequest) returns (CartResponse);
-  rpc ClearCart(ClearCartRequest) returns (CartResponse);
+    rpc CreateCart(CreateCartRequest) returns (CartResponse);
+    rpc GetCart(GetCartRequest) returns (CartResponse);
+    rpc AddItem(AddItemRequest) returns (CartResponse);
+    rpc RemoveItem(RemoveItemRequest) returns (CartResponse);
+    rpc ClearCart(ClearCartRequest) returns (CartResponse);
 }
 
 message CreateCartRequest {
-  string user_id = 1;
+    string user_id = 1;
 }
 
 message GetCartRequest {
-  string user_id = 1;
+    string user_id = 1;
 }
 
 message AddItemRequest {
-  string user_id = 1;
-  string product_id = 2;
-  int32 quantity = 3;
+    string user_id = 1;
+    string product_id = 2;
+    int32 quantity = 3;
 }
 
 message RemoveItemRequest {
-  string user_id = 1;
-  string product_id = 2;
+    string user_id = 1;
+    string product_id = 2;
 }
 
 message ClearCartRequest {
-  string user_id = 1;
+    string user_id = 1;
 }
 
 message CartItem {
-  string product_id = 1;
-  string product_name = 2;
-  float price = 3;
-  int32 quantity = 4;
-  float total = 5;
+    string product_id = 1;
+    string product_name = 2;
+    float price = 3;
+    int32 quantity = 4;
+    float total = 5;
 }
 
 message CartResponse {
-  string cart_id = 1;
-  string user_id = 2;
-  repeated CartItem items = 3;
-  float total_amount = 4;
-  int32 total_items = 5;
-  string created_at = 6;
-  string updated_at = 7;
+    string cart_id = 1;
+    string user_id = 2;
+    repeated CartItem items = 3;
+    float total_amount = 4;
+    int32 total_items = 5;
+    string created_at = 6;
+    string updated_at = 7;
 }

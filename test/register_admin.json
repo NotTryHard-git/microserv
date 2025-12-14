@@ -1,0 +1,6 @@
+{
+    "email": "admin@store.com",
+    "password": "AdminPass123!",
+    "role": "ADMIN",
+    "bank_account": "ADMIN001"
+}
