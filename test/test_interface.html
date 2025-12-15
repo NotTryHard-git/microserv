@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧪 Тестирование GraphQL Gateway</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f5e8;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Тестирование GraphQL Gateway</h1>
+    
+    <div class="test-section">
+        <h3>1. Проверить здоровье сервиса</h3>
+        <button onclick="testHealth()">Проверить Health</button>
+        <pre id="healthResult"></pre>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Получить продукты (GraphQL)</h3>
+        <button onclick="getProducts()">Получить продукты</button>
+        <pre id="productsResult"></pre>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Получить заказы (GraphQL)</h3>
+        <button onclick="getOrders()">Получить заказы</button>
+        <pre id="ordersResult"></pre>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. Создать тестовый заказ (GraphQL)</h3>
+        <button onclick="createOrder()">Создать заказ</button>
+        <pre id="createOrderResult"></pre>
+    </div>
+    
+    <div class="test-section">
+        <h3>5. REST API (обратная совместимость)</h3>
+        <button onclick="getRestProducts()">REST: Продукты</button>
+        <button onclick="getRestOrders()">REST: Заказы</button>
+        <pre id="restResult"></pre>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8081';
+        
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                return { error: error.message };
+            }
+        }
+        
+        function displayResult(elementId, data) {
+            const element = document.getElementById(elementId);
+            element.textContent = JSON.stringify(data, null, 2);
+            element.style.display = 'block';
+        }
+        
+        async function testHealth() {
+            const data = await makeRequest(`${API_URL}/health`);
+            displayResult('healthResult', data);
+        }
+        
+        async function getProducts() {
+            const query = {
+                query: `query {
+                    products(limit: 3) {
+                        id
+                        name
+                        price
+                        quantity
+                    }
+                }`
+            };
+            
+            const data = await makeRequest(`${API_URL}/graphql`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(query)
+            });
+            
+            displayResult('productsResult', data);
+        }
+        
+        async function getOrders() {
+            const query = {
+                query: `query {
+                    orders {
+                        orderId
+                        status
+                        totalAmount
+                        items {
+                            productName
+                            quantity
+                        }
+                    }
+                }`
+            };
+            
+            const data = await makeRequest(`${API_URL}/graphql`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(query)
+            });
+            
+            displayResult('ordersResult', data);
+        }
+        
+        async function createOrder() {
+            const mutation = {
+                query: `mutation {
+                    createOrder(input: {
+                        userId: "test_user_123",
+                        productId: "test_product_456",
+                        quantity: 2,
+                        shippingAddress: "Тестовый адрес"
+                    }) {
+                        success
+                        orderId
+                        message
+                    }
+                }`
+            };
+            
+            const data = await makeRequest(`${API_URL}/graphql`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(mutation)
+            });
+            
+            displayResult('createOrderResult', data);
+        }
+        
+        async function getRestProducts() {
+            const data = await makeRequest(`${API_URL}/rest/products`);
+            displayResult('restResult', data);
+        }
+        
+        async function getRestOrders() {
+            const data = await makeRequest(`${API_URL}/rest/orders`);
+            displayResult('restResult', data);
+        }
+        
+        // Автоматически проверяем здоровье при загрузке
+        window.onload = testHealth;
+    </script>
+</body>
+</html>
