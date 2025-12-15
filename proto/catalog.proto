@@ -2,81 +2,105 @@ syntax = "proto3";
 
 package catalog;
 
-service CatalogService {
-  rpc CreateProduct(CreateProductRequest) returns (ProductResponse);
-  rpc GetProduct(GetProductRequest) returns (ProductResponse);
-  rpc UpdateProduct(UpdateProductRequest) returns (ProductResponse);
-  rpc DeleteProduct(DeleteProductRequest) returns (DeleteResponse);
-  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
-  rpc CreateCategory(CreateCategoryRequest) returns (CategoryResponse);
-  rpc ListCategories(Empty) returns (ListCategoriesResponse);
-}
 
-message CreateProductRequest {
-  string name = 1;
-  string description = 2;
-  float price = 3;
-  string category_id = 4;
-  int32 quantity = 5;
-  string image_url = 6;
-}
+service Catalog {
 
-message GetProductRequest {
-  string product_id = 1;
-}
+	rpc GetAllProducts (Empty) returns (ProductsResponse);
 
-message UpdateProductRequest {
-  string product_id = 1;
-  string name = 2;
-  string description = 3;
-  float price = 4;
-  string category_id = 5;
-  int32 quantity = 6;
-  string image_url = 7;
-}
+    rpc GetAllCategories (Empty) returns (CategoriesResponse);
 
-message DeleteProductRequest {
-  string product_id = 1;
-}
+	rpc SearchProducts (SearchRequest) returns (ProductsResponse);
 
-message ListProductsRequest {
-  string category_id = 1;
-  int32 page = 2;
-  int32 limit = 3;
-}
+    rpc CreateProduct (CreateProductRequest) returns (ProductResponse);
 
-message CreateCategoryRequest {
-  string name = 1;
-}
+    rpc CreateCategory (CreateCategoryRequest) returns (CategoryResponse);
 
-message ProductResponse {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  float price = 4;
-  string category_id = 5;
-  int32 quantity = 6;
-  string image_url = 7;
-}
+    rpc UpdateProduct (UpdateProductRequest) returns (ProductResponse);
 
-message CategoryResponse {
-  string id = 1;
-  string name = 2;
-}
+    rpc UpdateCategory (UpdateCategoryRequest) returns (CategoryResponse);
 
-message ListProductsResponse {
-  repeated ProductResponse products = 1;
-  int32 total = 2;
-  int32 page = 3;
-  int32 limit = 4;
-}
+    rpc GetProduct (GetProductRequest) returns (ProductResponse);
 
-message ListCategoriesResponse {
-  repeated CategoryResponse categories = 1;
-}
+    rpc GetCategory (GetCategoryRequest) returns (CategoryResponse);
 
-message DeleteResponse {
-  bool success = 1;
+    rpc DeleteProduct (DeleteProductRequest) returns (DeleteResponse);
+
+    rpc DeleteCategory (DeleteCategoryRequest) returns (DeleteResponse);
+    
 }
 
 message Empty {}
+
+message SearchRequest {
+    string search_request = 1;
+}
+
+message CreateProductRequest {
+    string name = 1;
+    string desc = 2;
+    float price = 3;
+    string category_id = 4;
+    int32 quantity = 5;
+}
+
+message CreateCategoryRequest {
+    string name = 1;
+}
+
+message UpdateProductRequest {
+    string product_id = 1;
+    string name = 2;
+    string desc = 3;
+    float price = 4;
+    string category_id = 5;
+    int32 quantity = 6;
+}
+
+message UpdateCategoryRequest {
+    string category_id = 1;
+    string name = 2;
+}
+
+message GetProductRequest {
+    string product_id = 1;
+}
+
+message GetCategoryRequest {
+    string category_id = 1;
+}
+
+message DeleteProductRequest {
+    string product_id = 1;
+}
+
+message DeleteCategoryRequest {
+    string category_id = 1;
+}
+
+//
+
+message ProductResponse {
+    string product_id = 1;
+    string name = 2;
+    string desc = 3;
+    float price = 4;
+    string category_id = 5;
+    int32 quantity = 6;
+}
+
+message ProductsResponse {
+    repeated ProductResponse products = 1;
+}
+
+message CategoryResponse {
+    string category_id = 1;
+    string name = 2;
+}
+
+message CategoriesResponse {
+    repeated CategoryResponse categories = 1;
+}
+
+message DeleteResponse {
+    bool success = 1;
+}

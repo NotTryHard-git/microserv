@@ -1,13 +1,14 @@
-FROM python:3.9-slim
+FROM python:3.11.4
 
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY proto/*.proto .
+
 RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. *.proto
 
-COPY services/catalog_service.py .
+COPY services/payment.py .
 
-CMD ["python", "catalog_service.py"]
+CMD ["python", "payment.py"]

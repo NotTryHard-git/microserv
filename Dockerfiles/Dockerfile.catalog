@@ -1,0 +1,14 @@
+FROM python:3.11.4
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY proto/catalog.proto .
+
+RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. catalog.proto
+
+COPY services/catalog.py .
+
+CMD ["python", "catalog.py"]

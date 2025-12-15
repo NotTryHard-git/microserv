@@ -6,129 +6,95 @@ services:
     ports:
       - "8500:8500"
     command: ["agent", "-dev", "-client=0.0.0.0"]
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    depends_on:
-      - order-service
-    healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    
-  cart-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.cart
-    ports:
-      - "50053:50053"
-    depends_on:
-      - consul
 
-  auth-service:
+  auth:
     build:
       context: .
-      dockerfile: Dockerfile.auth
+      dockerfile: dockerfiles/Dockerfile.auth
     ports:
       - "50051:50051"
-    environment:
-      - CONSUL_HOST=consul
     depends_on:
-      - cart-service  
       - consul
-  
-  catalog-service:
+
+  catalog:
     build:
       context: .
-      dockerfile: Dockerfile.catalog
+      dockerfile: dockerfiles/Dockerfile.catalog
     ports:
       - "50052:50052"
-    depends_on:
+    depends_on: 
       - consul
 
-  order-service:
+  order:
     build:
       context: .
-      dockerfile: Dockerfile.order
+      dockerfile: dockerfiles/Dockerfile.order
+    ports:
+      - "50053:50053"
+    depends_on: 
+      - consul
+      - auth
+      - catalog
+  
+  payment:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.payment
     ports:
       - "50054:50054"
-    depends_on:
-      - cart-service
-      - catalog-service
+    depends_on: 
       - consul
-  # Новые сервисы
-  payment-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.payment
-    container_name: payment-service
-    ports:
-      - "50055:50055"
-    depends_on:
-      - consul
+      - order
       - rabbitmq
-      - order-service
-    
 
-  notification-service:
+  gateway:
     build:
       context: .
-      dockerfile: Dockerfile.notification
-    container_name: notification-service
-    ports:
-      - "50056:50056"
-    depends_on:
-      - rabbitmq
-      - order-service
-      - payment-service
-    
-  # NEW: GraphQL Gateway
-  graphql-gateway:
-    build:
-      context: .
-      dockerfile: Dockerfile.graphql
-    ports:
-      - "8081:8081"
-    environment:
-      - PYTHONUNBUFFERED=1
-    depends_on:
-      - catalog-service
-      - order-service
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  api-gateway:
-    build:
-      context: .
-      dockerfile: Dockerfile.gateway
+      dockerfile: dockerfiles/Dockerfile.gateway
     ports:
       - "8080:8080"
     depends_on:
-      - auth-service
-      - catalog-service
-      - order-service
-      - graphql-gateway  # NEW DEPENDENCY
-      - payment-service
-      - notification-service
+      - auth
+      - catalog
+      - order
 
   nginx:
     image: nginx:alpine
     ports:
       - "80:80"
-      - "8082:8082"  # Для GraphQL документации
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - api-gateway
-      - graphql-gateway
+      - gateway
+  
+  graphql-gateway:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.graphql_gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - auth
+      - catalog
+      - order
+    
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # AMQP порт
+      - "15672:15672" # Web UI порт
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    depends_on:
+      - order
+  
+  notification:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.notification
+    ports:
+      - "50055:50055"
+    depends_on:
+      - order
+      - gateway

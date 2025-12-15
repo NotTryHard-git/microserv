@@ -2,36 +2,50 @@ syntax = "proto3";
 
 package notification;
 
-service NotificationService {
-    rpc SendNotification(NotificationRequest) returns (NotificationResponse);
-    rpc GetUserNotifications(UserNotificationsRequest) returns (UserNotificationsResponse);
+
+service Notification {
+
+	rpc GetNotification (GetNotificationRequest) returns (NotificationResponse);
+
+    rpc GetUserNotifications (GetUserNotificationsRequest) returns (NotificationsResponse);
+
+    rpc CreateNotification (CreateNotificationRequest) returns (SuccessResponse);
+
+    rpc DeleteNotification (DeleteNotificationRequest) returns (SuccessResponse);
+    
 }
 
-message NotificationRequest {
-    string user_id = 1;
-    string type = 2; // ORDER_CREATED, PAYMENT_SUCCESS, PAYMENT_FAILED, ORDER_SHIPPED, etc.
-    string title = 3;
-    string message = 4;
-    map<string, string> metadata = 5;
+message GetNotificationRequest {
+    string notification_id = 1;
 }
 
-message UserNotificationsRequest {
-    string user_id = 1;
-    int32 limit = 2;
-    int32 offset = 3;
+message GetUserNotificationsRequest {
+    string uid = 1;
 }
+
+message CreateNotificationRequest {
+    string uid = 1;
+    string order_id = 2;
+    string status = 3;
+}
+
+message DeleteNotificationRequest {
+    string notification_id = 1;
+}
+
+//
 
 message NotificationResponse {
     string notification_id = 1;
-    string user_id = 2;
-    string type = 3;
-    string title = 4;
-    string message = 5;
-    bool sent = 6;
-    string created_at = 7;
+    string uid = 2;
+    string order_id = 3;
+    string status = 4;
 }
 
-message UserNotificationsResponse {
+message NotificationsResponse {
     repeated NotificationResponse notifications = 1;
-    int32 total = 2;
+}
+
+message SuccessResponse {
+    bool success = 1;
 }
