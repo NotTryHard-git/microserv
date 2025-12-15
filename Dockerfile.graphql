@@ -1,0 +1,18 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Копируем зависимости
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Копируем прото-файлы и сгенерированный код
+COPY proto/*.proto .
+RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. *.proto
+# Копируем основной код
+COPY services/graphql_gateway.py .
+
+EXPOSE 8081
+
+# Запускаем сервер
+CMD ["python", "graphql_gateway.py"]

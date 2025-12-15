@@ -8,8 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY proto/*.proto .
 RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. *.proto
 
-RUN python -c "import cart_pb2, cart_pb2_grpc; print('✅ Cart proto imports successful')"
-
 COPY services/cart_service.py .
 
 CMD ["python", "cart_service.py"]
+

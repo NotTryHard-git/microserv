@@ -8,8 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY proto/*.proto .
 RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. *.proto
 
-RUN python -c "import auth_pb2, auth_pb2_grpc, cart_pb2, cart_pb2_grpc, catalog_pb2, catalog_pb2_grpc; print('✅ All gateway imports successful')"
-
 COPY gateway/app.py .
 
 CMD ["python", "app.py"]
+

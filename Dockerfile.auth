@@ -9,10 +9,6 @@ COPY proto/*.proto .
 
 RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. *.proto
 
-RUN ls -la *.py
-
-RUN python -c "import auth_pb2, auth_pb2_grpc, cart_pb2, cart_pb2_grpc; print('✅ All proto imports successful')"
-
 COPY services/auth_service.py .
 
 CMD ["python", "auth_service.py"]
