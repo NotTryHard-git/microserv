@@ -20,18 +20,32 @@ logger = logging.getLogger('OrderService')
 
 order_channel = 'order:50053'
 
+# Circuit Breaker
+FAIL_THRESHOLD = 3
+
+OPEN_STATE_TIME = 90 # secs
+
+fails = 0
+open_state_end = -1
+
 
 async def process_payment(message: aio_pika.IncomingMessage):
+    global fails, open_state_end
+    if time.time() < open_state_end:
+        await asyncio.sleep(open_state_end - time.time() + 0.2) # чтобы точно не начать раньше конца open state
+        logger.info("Slept until the end of open state.")
 
     async with message.process():
         try:
             data = json.loads(message.body.decode())
             order_id = data['order_id']
             logger.info(f'Processing order {order_id}...')
-            
+            raise Exception("Имитация ошибки платежа") # иммитируем ошибки
             bank_details = int(data['bank_details'])
             await asyncio.sleep(bank_details)
 
+            fails = 0 # сброс подсчёта ошибок при успешной обработке платежа
+            
             async with grpc.aio.insecure_channel(order_channel) as channel:
                 stub = order_pb2_grpc.OrderStub(channel)
                 
@@ -51,6 +65,12 @@ async def process_payment(message: aio_pika.IncomingMessage):
                     order_id=order_id,
                     status=f"failed with {e}"
                 ))
+            
+            fails += 1
+            if fails >= FAIL_THRESHOLD:
+                logger.info("----------------------- OPEN STATE -----------------------")
+                open_state_end = time.time() + OPEN_STATE_TIME
+                fails = 0
 
 
 async def main():
@@ -81,15 +101,9 @@ async def main():
 
 if __name__ == '__main__':
     try:
-        asyncio.run(main())
-        time.sleep(7)
-        asyncio.run(main())
-        time.sleep(7)
-        asyncio.run(main())
-        time.sleep(7)
-        asyncio.run(main())
-        time.sleep(7)
-        asyncio.run(main())
-        time.sleep(7)
+        for _ in range(5):
+            time.sleep(10)
+            asyncio.run(main())
+        logger.info("Connection to RabbitMQ is failed.")
     except KeyboardInterrupt:
         logger.info('Payment Service stopped by user.')
