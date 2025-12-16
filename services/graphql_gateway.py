@@ -271,6 +271,12 @@ class Mutation:
         r = requests.post('http://gateway:8080/api/order/buyfromcart', json=json)
         success = r.json()
         return Success(success=success['success'])
+    
+    @strawberry.mutation
+    def rebuild_orders(self) -> Success:
+        r = requests.post('http://gateway:8080/api/order/rebuildorders', json={}).json()
+        print(r)
+        return Success(success=r['success'])
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
 graphql_app = GraphQLRouter(schema)
@@ -280,26 +286,3 @@ app.include_router(graphql_app, prefix='/graphql')
 
 if __name__ == '__main__':
     run(app, host='0.0.0.0', port=8000)
-
-#users{
-#    uid,
-#    first_name,
-#    second_name,
-#    email,
-#    adress,
-#    is_admin,
-#    balance,
-#    cart{
-#        product{
-#            product_id,
-#            name,
-#            desc,
-#            price,
-#            category{
-#                category_id,
-#                name
-#            },
-#            quantity
-#        }
-#    }
-#}

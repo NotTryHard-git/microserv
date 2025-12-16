@@ -3,6 +3,8 @@ import grpc
 import aio_pika
 import json
 import asyncio
+from confluent_kafka import Producer, Consumer
+import time
 
 import order_pb2, order_pb2_grpc
 import auth_pb2, auth_pb2_grpc
@@ -18,6 +20,44 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger('OrderService')
+
+kafka_server = "kafka:9092"
+
+class KafkaEventPublisher:
+
+    def __init__(self, kafka_server):
+        logger.info("Initializing KafkaEventPublisher...")
+        self.conf = {
+            'bootstrap.servers': kafka_server,
+            'acks': 'all',
+            'retries': 10,
+            'enable.idempotence': True
+        }
+        time.sleep(45)
+        self.producer = Producer(self.conf)
+        logger.info("KafkaEventPublisher initialized successfully")
+    
+    def delivery_callback(self, err, msg):
+        if err:
+            logger.warning(f"Kafka delivery error: {err}")
+        else:
+            logger.info(f"Kafka delivery is successful: {msg.topic()} [{msg.partition()}]")
+        
+    async def publish_event(self, topic, key, value):
+        def produce():
+            self.producer.produce(
+                topic=topic,
+                key=key,
+                value=json.dumps(value),
+                callback=self.delivery_callback
+            )
+            self.producer.poll(0)
+        
+        logger.info(f"Publishing event on Kafka:\nTopic: {topic}\nKey: {key}\nValue: {json.dumps(value)}")
+        # Запускаем в отдельном потоке чтобы не блокировать event loop
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, produce)
+
 
 class OrderService(order_pb2_grpc.OrderServicer):
 
@@ -41,11 +81,12 @@ class OrderService(order_pb2_grpc.OrderServicer):
 
         self.notification_channel = grpc.insecure_channel('notification:50055')
         self.notification_stub = notification_pb2_grpc.NotificationStub(self.notification_channel)
-        
+
+        self.kafka_publisher = KafkaEventPublisher(kafka_server)
         
         logger.info("Order Service initialized successfully")
     
-    def GetCart(self, request, context):
+    async def GetCart(self, request, context):
         logger.info('Getting Cart...')
         if request.uid not in self.carts:
             try:
@@ -65,7 +106,7 @@ class OrderService(order_pb2_grpc.OrderServicer):
             products = [order_pb2.Product(cart_product_id=cart_product_id, **self.carts[request.uid][cart_product_id]) for cart_product_id in self.carts[request.uid]]
         )
     
-    def GetFromCart(self, request, context):
+    async def GetFromCart(self, request, context):
         logger.info('Getting From Cart...')
         if request.uid not in self.carts:
             try:
@@ -89,7 +130,7 @@ class OrderService(order_pb2_grpc.OrderServicer):
         
         return order_pb2.Product(cart_product_id=request.cart_product_id, **self.carts[uid][request.cart_product_id])
     
-    def AddToCart(self, request, context):
+    async def AddToCart(self, request, context):
         logger.info('Adding To Cart...')
         if request.uid not in self.carts:
             try:
@@ -128,7 +169,7 @@ class OrderService(order_pb2_grpc.OrderServicer):
         self.carts[request.uid][cart_product_id] = {'product_id': request.product_id, 'quantity': request.quantity}
         return order_pb2.SuccessResponse(success=True)
     
-    def DeleteFromCart(self, request, context):
+    async def DeleteFromCart(self, request, context):
         logger.info('Deleting From Cart...')
         if request.uid not in self.carts:
             try:
@@ -151,7 +192,7 @@ class OrderService(order_pb2_grpc.OrderServicer):
         del self.carts[request.uid][request.cart_product_id]
         return order_pb2.SuccessResponse(success=True)
     
-    def UpdateWithinCart(self, request, context):
+    async def UpdateWithinCart(self, request, context):
         logger.info('Updating Within Cart...')
         if request.uid not in self.carts:
             try:
@@ -247,6 +288,14 @@ class OrderService(order_pb2_grpc.OrderServicer):
             'bank_details': request.bank_details,
             'status': 'in processing'
         }
+        await self.kafka_publisher.publish_event(
+            topic='orders',
+            key=order_id,
+            value={
+                'action': 'created',
+                'order': self.orders[order_id]
+            }
+        )
 
         try:
 
@@ -266,6 +315,14 @@ class OrderService(order_pb2_grpc.OrderServicer):
                 order_id = order_id,
                 status = 'failed'
             ))
+            await self.kafka_publisher.publish_event(
+                topic='orders',
+                key=order_id,
+                value={
+                    'action': 'updated',
+                    'status': 'failed'
+                }
+            )
             return order_pb2.SuccessResponse(success=False)
 
         self.notification_stub.CreateNotification(notification_pb2.CreateNotificationRequest(
@@ -279,7 +336,7 @@ class OrderService(order_pb2_grpc.OrderServicer):
         del self.carts[request.uid][request.cart_product_id]
         return order_pb2.SuccessResponse(success=True)
     
-    def GetUserOrders(self, request, context):
+    async def GetUserOrders(self, request, context):
         logger.info('Getting User Orders...')
 
         if request.uid not in self.user_order:
@@ -300,7 +357,7 @@ class OrderService(order_pb2_grpc.OrderServicer):
             orders = [order_pb2.OrderResponse(**self.orders[order_id]) for order_id in self.user_order[request.uid]]
         )
     
-    def GetOrder(self, request, context):
+    async def GetOrder(self, request, context):
         logger.info('Getting Order...')
         if request.order_id not in self.orders:
             logger.warning("This order doesn't exist.")
@@ -309,9 +366,18 @@ class OrderService(order_pb2_grpc.OrderServicer):
             return order_pb2.OrderResponse()
         return order_pb2.OrderResponse(**self.orders[request.order_id])
     
-    def UpdateOrder(self, request, context):
+    async def UpdateOrder(self, request, context):
         logger.info(f"Updating Order {request.order_id}: status {request.status}")
         self.orders[request.order_id]['status'] = request.status
+
+        await self.kafka_publisher.publish_event(
+            topic='orders',
+            key=request.order_id,
+            value={
+                'action': 'updated',
+                'status': request.status
+            }
+        )
 
         order = self.orders[request.order_id]
         if request.status != 'confirmed': # Saga rollback
@@ -338,6 +404,46 @@ class OrderService(order_pb2_grpc.OrderServicer):
 
         return order_pb2.Empty() 
     
+    async def RebuildOrders(self, request, context):
+        logger.info("rebuilding Orders")
+        conf = {
+            'bootstrap.servers': kafka_server,
+            'auto.offset.reset': 'earliest',
+            'group.id': 'order-rebuilder'
+        }
+        
+        consumer = Consumer(conf)
+        consumer.subscribe(['orders'])
+
+        logger.info("Polling events from Kafka...")
+
+        try:
+
+            for _ in range(100):
+                logger.info(f"{_} Polling from Kafka...")
+                msg = consumer.poll(timeout=0.1)
+                if msg is None:
+                    continue
+                if msg.error():
+                    logger.warning(f"Kafka message error: {msg.error()}")
+                    break
+                else:
+                    data = msg.value().decode()
+                    logger.info(f"Message: {data}")
+                    data = json.loads(data)
+                    if data['action'] == 'created':
+                        order = data['order']
+                        self.user_order[order['uid']].append(order['order_id'])
+                        self.orders[order['order_id']] = order
+                    elif data['action'] == 'updated':
+                        self.orders[msg.key().decode()]['status'] = data['status']
+            
+            return order_pb2.SuccessResponse(success=True)
+
+        except Exception as e:
+            logger.warning(f"Kafka polling eternal error: {e}")
+            return order_pb2.SuccessResponse(success=False) 
+
 
     async def send_to_rabbitmq(self, queue, message):
         logger.info('Sending to RabbitMQ...............')
@@ -354,6 +460,15 @@ class OrderService(order_pb2_grpc.OrderServicer):
                 ),
                 routing_key=queue
             )
+
+    async def initialize_kafka(self):
+        await self.kafka_publisher.publish_event(
+            topic='orders',
+            key='init',
+            value={
+                'action': 'topic initialized'
+            }
+        )
         
 
 
@@ -361,8 +476,11 @@ async def serve():
     logger.info('Starting Order Service...')
     server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10))
 
+    service = OrderService(rabbitmq_conn='amqp://guest:guest@rabbitmq:5672/')
+    await service.initialize_kafka()
+
     order_pb2_grpc.add_OrderServicer_to_server(
-        OrderService(rabbitmq_conn='amqp://guest:guest@rabbitmq:5672/'),
+        service,
         server
         )
     

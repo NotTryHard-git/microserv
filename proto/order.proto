@@ -21,7 +21,9 @@ service Order {
 
     rpc GetOrder (GetOrderRequest) returns (OrderResponse);
     
-    rpc UpdateOrder(UpdateOrderRequest) returns (Empty);
+    rpc UpdateOrder (UpdateOrderRequest) returns (Empty);
+
+    rpc RebuildOrders (Empty) returns (SuccessResponse);
     
 }
 

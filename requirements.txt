@@ -8,3 +8,4 @@ grpcio-tools==1.76.0
 aio-pika==9.5.8
 PyJWT==2.10.1
 asyncio==3.4.3
+confluent-kafka==2.12.2

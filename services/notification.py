@@ -90,7 +90,7 @@ class NotificationService(notification_pb2_grpc.NotificationServicer):
         
 
 def serve():
-    logger.info('Starting Notificaion Service...')
+    logger.info('Starting Notification Service...')
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     notification_pb2_grpc.add_NotificationServicer_to_server(NotificationService(), server)
     server.add_insecure_port("[::]:50055")

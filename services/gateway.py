@@ -342,7 +342,16 @@ class OrderClient:
                 }
         except grpc.RpcError as e:
             return {'error': e.details()}
- 
+
+    def RebuildOrders(self, data):
+        try:
+            response = self.stub.RebuildOrders(order_pb2.Empty())
+            return {
+                    'success': response.success
+                }
+        except grpc.RpcError as e:
+            return {'error': e.details()}
+
 class NotificationClient:
     
     def __init__(self):
@@ -532,6 +541,12 @@ def GetUserOrders():
 def GetOrder():
     data = request.get_json()
     result = order_client.GetOrder(data)
+    return jsonify(result)
+
+@app.route('/api/order/rebuildorders', methods=['POST'])
+def RebuildOrders():
+    data = request.get_json()
+    result = order_client.RebuildOrders(data)
     return jsonify(result)
 
 #notification
